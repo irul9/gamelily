@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Relationship Radar 🎀</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=Caveat:wght@700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root { --soft-pink: #fff0f3; --accent-pink: #ff8fac; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--soft-pink); overflow-x: hidden; }
+        .font-handwritten { font-family: 'Caveat', cursive; }
+        .glass { background: rgba(255, 255, 255, 0.45); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 2rem; }
+        .btn-primary { background: linear-gradient(135deg, #ff8fac 0%, #ff5c8d 100%); box-shadow: 0 10px 20px rgba(255, 92, 141, 0.3); }
+        .btn-secondary { background: white; border: 2px solid #ff8fac; color: #ff5c8d; }
+        .blob { position: absolute; width: 300px; height: 300px; background: linear-gradient(180deg, rgba(255,182,193,0.4) 0%, rgba(255,105,180,0.2) 100%); filter: blur(50px); border-radius: 50%; z-index: -1; animation: move 20s infinite alternate; }
+        @keyframes move { from { transform: translate(-10%, -10%); } to { transform: translate(20%, 20%); } }
+    </style>
+</head>
+<body x-data="loveApp()">
+
+    <div class="fixed inset-0 overflow-hidden -z-10">
+        <div class="blob top-[-10%] left-[-10%]"></div>
+        <div class="blob bottom-[-10%] right-[-10%]"></div>
+    </div>
+
+    <main class="min-h-screen max-w-md mx-auto px-6 py-8 flex flex-col justify-center items-center">
+
+        <div x-show="view === 'menu'" class="w-full space-y-6" x-transition>
+            <div class="text-center bg-white/40 p-6 rounded-3xl border border-white/50 shadow-sm">
+                <h1 class="text-2xl font-extrabold text-pink-600 tracking-tight">Relationship Radar 🎀</h1>
+                <p class="text-xs text-gray-500 mt-1">Klik game di bawah buat mulai main bareng Lily</p>
+            </div>
+
+            <div class="space-y-4">
+                <template x-for="(game, index) in games" :key="index">
+                    <div class="glass p-5 flex items-center justify-between shadow-sm hover:scale-[1.01] transition-transform">
+                        <div class="space-y-1 pr-2">
+                            <span class="text-xs font-bold uppercase tracking-widest text-pink-500" x-text="'Game ' + (index+1)"></span>
+                            <h3 class="font-bold text-gray-800 text-base" x-text="game.title"></h3>
+                        </div>
+                        <button @click="selectGame(index)" class="btn-primary text-white text-xs font-bold px-5 py-3 rounded-2xl whitespace-nowrap">Mainkan</button>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <div x-show="view === 'cover'" class="w-full text-center space-y-8" x-transition>
+            <div class="text-7xl animate-bounce">🎀</div>
+            <div class="glass p-8 space-y-4 shadow-sm">
+                <h2 class="text-3xl font-extrabold text-pink-600 tracking-tight" x-text="activeGame().title"></h2>
+                <p class="text-gray-600 italic text-sm" x-text="activeGame().tagline"></p>
+            </div>
+            <button @click="view = 'rules'" class="btn-primary text-white px-12 py-4 rounded-full font-bold w-full uppercase tracking-wider text-sm">Start</button>
+        </div>
+
+        <div x-show="view === 'rules'" class="w-full space-y-6" x-transition>
+            <h2 class="text-xl font-extrabold text-pink-600 text-center tracking-tight">Rules</h2>
+            <div class="glass p-6 shadow-sm">
+                <ul class="space-y-4 text-xs font-bold text-pink-600">
+                    <template x-for="rule in activeGame().rules">
+                        <li class="flex items-start gap-3">
+                            <span>🌸</span>
+                            <span x-text="rule"></span>
+                        </li>
+                    </template>
+                </ul>
+            </div>
+            <button @click="startQuestions()" class="btn-primary text-white px-12 py-4 rounded-full font-bold w-full uppercase tracking-wider text-sm">I'm Ready</button>
+        </div>
+
+        <div x-show="view === 'quiz'" class="w-full space-y-6" x-transition>
+            <div class="w-full bg-pink-100 h-2.5 rounded-full overflow-hidden">
+                <div class="bg-pink-500 h-full transition-all duration-300" :style="`width: ${(currentQuestionIndex + 1) / activeGame().questions.length * 100}%`"></div>
+            </div>
+            
+            <div class="flex justify-between items-center text-xs text-gray-400 font-bold px-1">
+                <span x-text="`Pertanyaan ${currentQuestionIndex + 1}/${activeGame().questions.length}`"></span>
+                <span class="text-pink-400" x-text="activeGame().title"></span>
+            </div>
+
+            <div class="glass p-8 text-center min-h-[180px] flex items-center justify-center shadow-md">
+                <p class="text-lg font-bold text-gray-700 leading-snug" x-text="activeGame().questions[currentQuestionIndex]"></p>
+            </div>
+
+            <div class="space-y-3 w-full">
+                <template x-if="activeGameIndex === 0">
+                    <div class="grid grid-cols-2 gap-3">
+                        <button @click="saveAnswer('Cheating 🚨')" class="btn-primary text-white py-4 rounded-2xl font-bold text-sm">Cheating 🚨</button>
+                        <button @click="saveAnswer('No Cheating 😌')" class="btn-secondary py-4 rounded-2xl font-bold text-sm">No Cheating 😌</button>
+                    </div>
+                </template>
+
+                <template x-if="activeGameIndex === 1">
+                    <div class="grid grid-cols-2 gap-3">
+                        <button @click="saveAnswer('Green Flag 💚')" class="bg-green-500 text-white py-4 rounded-2xl font-bold text-sm shadow-md">Green Flag 💚</button>
+                        <button @click="saveAnswer('Red Flag 🚨')" class="bg-red-500 text-white py-4 rounded-2xl font-bold text-sm shadow-md">Red Flag 🚨</button>
+                    </div>
+                </template>
+
+                <template x-if="activeGameIndex === 2">
+                    <div class="grid grid-cols-2 gap-3">
+                        <button @click="saveAnswer('Lily 👩‍🦰')" class="btn-primary text-white py-4 rounded-2xl font-bold text-sm">Lily 👩‍🦰</button>
+                        <button @click="saveAnswer('Anwar 👨‍💻')" class="btn-secondary py-4 rounded-2xl font-bold text-sm">Anwar 👨‍💻</button>
+                    </div>
+                </template>
+
+                <template x-if="activeGameIndex === 3">
+                    <div class="grid grid-cols-2 gap-3">
+                        <button @click="saveAnswer(getOptions(activeGame().questions[currentQuestionIndex])[0])" class="btn-primary text-white py-4 px-2 rounded-2xl font-bold text-xs truncate" x-text="getOptions(activeGame().questions[currentQuestionIndex])[0]"></button>
+                        <button @click="saveAnswer(getOptions(activeGame().questions[currentQuestionIndex])[1])" class="btn-secondary py-4 px-2 rounded-2xl font-bold text-xs truncate" x-text="getOptions(activeGame().questions[currentQuestionIndex])[1]"></button>
+                    </div>
+                </template>
+
+                <template x-if="activeGameIndex === 4">
+                    <div class="grid grid-cols-2 gap-3">
+                        <button @click="saveAnswer('Setuju 📑')" class="btn-primary text-white py-4 rounded-2xl font-bold text-sm">Setuju 📑</button>
+                        <button @click="saveAnswer('Nego 😤')" class="btn-secondary py-4 rounded-2xl font-bold text-sm">Nego 😤</button>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <div x-show="view === 'result'" class="w-full space-y-6" x-transition>
+            <div class="text-center space-y-2">
+                <div class="text-5xl">😌</div>
+                <h2 class="text-2xl font-extrabold text-pink-600 tracking-tight">Your Answers Are In 😌</h2>
+                <p class="text-xs text-gray-500">nahh ini semua jawaban kamu, yuk review bareng satu-satu</p>
+            </div>
+
+            <div class="glass p-4 max-h-[320px] overflow-y-auto space-y-2 border border-pink-100 shadow-inner">
+                <template x-for="(ans, idx) in currentAnswers" :key="idx">
+                    <div class="bg-white/80 p-3 rounded-2xl border border-pink-50/50 flex flex-col gap-1 shadow-sm">
+                        <p class="text-xs font-bold text-gray-700" x-text="`${idx + 1}. ${ans.q}`"></p>
+                        <div class="text-[11px] font-extrabold text-pink-500 self-end bg-pink-50 px-2 py-0.5 rounded-lg" x-text="`→ ${ans.a}`"></div>
+                    </div>
+                </template>
+            </div>
+
+            <div class="text-center pt-2 space-y-3">
+                <button @click="showCtaText = true" class="btn-primary text-white px-10 py-4 rounded-full font-bold w-full shadow-lg text-sm uppercase tracking-wider">
+                    review bareng yuk
+                </button>
+                
+                <div x-show="showCtaText" x-transition class="text-xs font-bold text-pink-500 bg-white/60 p-3 rounded-xl border border-pink-100">
+                    sekarang waktunya bahas satu-satu. siap adu argumen? 😭🤍
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 pt-2">
+                    <button @click="resetGame()" class="btn-secondary py-3 rounded-2xl font-bold text-xs uppercase tracking-wider">Main Lagi</button>
+                    <button @click="view = 'menu'" class="btn-primary text-white py-3 rounded-2xl font-bold text-xs uppercase tracking-wider shadow-none">Back to Games</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        function loveApp() {
+            return {
+                view: 'menu',
+                activeGameIndex: 0,
+                currentQuestionIndex: 0,
+                currentAnswers: [], // Array temporary state
+                showCtaText: false,
+                
+                games: [
+                    {
+                        title: "Cheating or No Cheating?",
+                        tagline: "let’s see how aligned we are 😌",
+                        rules: ["ada 15 pertanyaan", "pilih jawaban paling jujur", "ga boleh overthink 😠", "hasilnya bakal muncul di akhir", "nanti kita review bareng"],
+                        questions: [
+                            "like postingan orang yang dulu pernah disuka tengah malem",
+                            "masih streak tiap hari sama orang yang pernah deket",
+                            "jalan berdua terus billing “temen doang kok”",
+                            "hapus chat pas ditanya lagi chat sama siapa",
+                            "bilang “aku kangen” ke orang lain",
+                            "masih nyimpen foto mantan",
+                            "curhat hubungan ke orang yang pernah suka",
+                            "intens chat tiap malem sama orang lain",
+                            "nyaman sama orang lain tapi ga bilang",
+                            "bohong soal lagi dimana",
+                            "sengaja bikin pasangan cemburu",
+                            "punya backup person buat chat",
+                            "bilang “cuma temen” padahal pernah ada rasa",
+                            "flirting iseng",
+                            "slow respon buat ngetes pasangan"
+                        ]
+                    },
+                    {
+                        title: "Green Flag or Red Flag?",
+                        tagline: "relationship radar test 😭",
+                        rules: ["pilih instinct pertama kamu", "jangan terlalu mikir", "bayangin ini kejadian di hubungan kita", "hasil pilihanmu muncul di akhir", "nanti kita review, debat dikit gapapa 😠"],
+                        questions: [
+                            "cepet bales chat",
+                            "bilang langsung kalau lagi bad mood",
+                            "ngambek tapi ga ngomong",
+                            "minta waktu sendiri tapi tetep ngabarin",
+                            "nanya “udah makan belum?”",
+                            "jujur meskipun awkward",
+                            "ngilang pas ada masalah",
+                            "bilang cemburu baik-baik",
+                            "keep contact sama orang yang ada history",
+                            "ngomong kalau ga nyaman",
+                            "bilang “aku butuh waktu bentar”",
+                            "minta maaf duluan",
+                            "ngaku salah",
+                            "cerita hal receh random",
+                            "bilang jujur lagi ga mood ngobrol"
+                        ]
+                    },
+                    {
+                        title: "Who’s More Likely To?",
+                        tagline: "ayo jujur jangan asal nuduh 😭",
+                        rules: ["pilih siapa yang paling mungkin", "ga boleh asal lempar tuduhan 😠", "pilih sesuai feeling pertama", "hasilnya kita review bareng", "kalau beda pendapat ya diskusi 😌"],
+                        questions: [
+                            "duluan ngambek",
+                            "duluan bilang kangen",
+                            "lebih clingy",
+                            "lebih overthink",
+                            "spam chat duluan",
+                            "ngajak jalan duluan",
+                            "susah billing lagi sedih",
+                            "kirim stiker random",
+                            "bucin duluan",
+                            "susah tidur habis berantem",
+                            "duluan minta maaf",
+                            "ngajak deep talk random",
+                            "excited pas mau ketemu",
+                            "ngenalin ke keluarga duluan",
+                            "nyariin pas lagi diem"
+                        ]
+                    },
+                    {
+                        title: "This or That",
+                        tagline: "pick fast, no second thoughts 😠",
+                        rules: ["pilih salah satu", "ga boleh mikir lama", "first choice = jawaban asli", "hasilnya bakal muncul di akhir", "terus kita cocokin preference kita 😌"],
+                        questions: [
+                            "deep talk / ngobrol receh",
+                            "chat panjang / vn",
+                            "museum / kulineran",
+                            "jalan sore / night ride",
+                            "peluk / gandeng tangan",
+                            "pink / strawberry",
+                            "rebahan sambil call / jalan random",
+                            "surat / hadiah",
+                            "quality time berdua / rame-rame",
+                            "“aku kangen” / “pengen ketemu”",
+                            "call 2 jam / ketemu 1 jam",
+                            "surprise kecil / surat panjang",
+                            "ngobrol di mobil / coffee shop",
+                            "ditemenin diem / dengerin cerita",
+                            "“selamat tidur” / “udah sampe rumah?”"
+                        ]
+                    },
+                    {
+                        title: "Our Relationship Agreement",
+                        tagline: "mini contract before we continue 😌",
+                        rules: ["pilih semua yang kamu setuju", "jawab jujur", "ini bukan jebakan 😭", "hasil pilihanmu bakal muncul di akhir", "nanti kita review bareng", "once agreed = no excuse “aku lupa” 😠"],
+                        questions: [
+                            "wajib ngabarin kalau sibuk",
+                            "ga boleh silent treatment",
+                            "ga boleh ngilang tanpa kabar",
+                            "bilang kalau ada yang bikin ga nyaman",
+                            "cerita kalau lagi kepikiran sesuatu",
+                            "ga boleh mendem masalah lama-lama",
+                            "jujur meskipun awkward",
+                            "saling support urusan hidup",
+                            "apresiasi effort kecil",
+                            "ga maksa pasangan nebak",
+                            "bilang kalau butuh ditemenin",
+                            "kasih reassurance secukupnya",
+                            "ngobrolin masalah baik-baik",
+                            "spam stiker patrick wajib",
+                            "ga boleh manggil “kak” 😠"
+                        ]
+                    }
+                ],
+
+                activeGame() {
+                    return this.games[this.activeGameIndex];
+                },
+                getOptions(qText) {
+                    return qText.split(' / ').map(item => item.trim());
+                },
+                selectGame(idx) {
+                    this.activeGameIndex = idx;
+                    this.showCtaText = false;
+                    this.view = 'cover';
+                },
+                startQuestions() {
+                    this.currentQuestionIndex = 0;
+                    this.currentAnswers = [];
+                    this.showCtaText = false;
+                    this.view = 'quiz';
+                },
+                saveAnswer(selectedOption) {
+                    let currentQuestionText = this.activeGame().questions[this.currentQuestionIndex];
+                    // Menyimpan data ke array sementara
+                    this.currentAnswers.push({
+                        q: currentQuestionText,
+                        a: selectedOption
+                    });
+
+                    // Abis pilih auto next
+                    if (this.currentQuestionIndex < this.activeGame().questions.length - 1) {
+                        this.currentQuestionIndex++;
+                    } else {
+                        this.view = 'result';
+                    }
+                },
+                resetGame() {
+                    // Reset array & balik ke awal pertanyaan game aktif
+                    this.currentAnswers = [];
+                    this.startQuestions();
+                }
+            }
+        }
+    </script>
+</body>
+</html>
