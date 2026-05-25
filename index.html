@@ -21,41 +21,82 @@
 </head>
 <body x-data="loveApp()">
 
+    <!-- Ornamen Background -->
     <div class="fixed inset-0 overflow-hidden -z-10">
         <div class="blob top-[-10%] left-[-10%]"></div>
         <div class="blob bottom-[-10%] right-[-10%]"></div>
     </div>
 
+    <!-- MAIN CONTAINER -->
     <main class="min-h-screen max-w-md mx-auto px-6 py-8 flex flex-col justify-center items-center">
 
-        <div x-show="view === 'menu'" class="w-full space-y-6" x-transition>
-            <div class="text-center bg-white/40 p-6 rounded-3xl border border-white/50 shadow-sm">
-                <h1 class="text-2xl font-extrabold text-pink-600 tracking-tight">Relationship Radar 🎀</h1>
-                <p class="text-xs text-gray-500 mt-1">Klik game di bawah buat mulai main bareng Lily</p>
+        <!-- ================= 1. DASHBOARD MENU ================= -->
+        <div x-show="view === 'menu'" class="w-full space-y-4" x-transition>
+            <div class="text-center bg-white/40 p-6 rounded-3xl border border-white/50 shadow-sm mb-2">
+                <h1 class="text-2xl font-extrabold text-pink-600 tracking-tight">Relationship Dashboard 🎀</h1>
+                <p class="text-xs text-gray-500 mt-1">Klik game di bawah buat mulai main bareng Lily & Irul</p>
             </div>
 
-            <div class="space-y-4">
+            <div class="space-y-3 max-h-[65vh] overflow-y-auto pr-1">
                 <template x-for="(game, index) in games" :key="index">
-                    <div class="glass p-5 flex items-center justify-between shadow-sm hover:scale-[1.01] transition-transform">
-                        <div class="space-y-1 pr-2">
-                            <span class="text-xs font-bold uppercase tracking-widest text-pink-500" x-text="'Game ' + (index+1)"></span>
-                            <h3 class="font-bold text-gray-800 text-base" x-text="game.title"></h3>
+                    <div class="glass p-4 flex items-center justify-between shadow-sm hover:scale-[1.01] transition-transform">
+                        <div class="space-y-0.5 pr-2">
+                            <span class="text-[10px] font-bold uppercase tracking-widest text-pink-500" x-text="'Menu ' + (index+1)"></span>
+                            <h3 class="font-bold text-gray-800 text-sm leading-tight" x-text="game.title"></h3>
                         </div>
-                        <button @click="selectGame(index)" class="btn-primary text-white text-xs font-bold px-5 py-3 rounded-2xl whitespace-nowrap">Mainkan</button>
+                        <button @click="selectGame(index)" class="btn-primary text-white text-xs font-bold px-4 py-2.5 rounded-xl whitespace-nowrap">Play</button>
                     </div>
                 </template>
             </div>
         </div>
 
+        <!-- ================= 2. SCREEN: COVER GAME ================= -->
         <div x-show="view === 'cover'" class="w-full text-center space-y-8" x-transition>
             <div class="text-7xl animate-bounce">🎀</div>
             <div class="glass p-8 space-y-4 shadow-sm">
-                <h2 class="text-3xl font-extrabold text-pink-600 tracking-tight" x-text="activeGame().title"></h2>
-                <p class="text-gray-600 italic text-sm" x-text="activeGame().tagline"></p>
+                <h2 class="text-2xl font-extrabold text-pink-600 tracking-tight" x-text="activeGame().title"></h2>
+                <p class="text-gray-600 italic text-xs leading-relaxed" x-text="activeGame().tagline"></p>
             </div>
-            <button @click="view = 'rules'" class="btn-primary text-white px-12 py-4 rounded-full font-bold w-full uppercase tracking-wider text-sm">Start</button>
+            <button @click="handleCoverContinue()" class="btn-primary text-white px-12 py-4 rounded-full font-bold w-full uppercase tracking-wider text-sm">Continue</button>
         </div>
 
+        <!-- ================= 3. SCREEN: OPENING PAGE & HOW TO PLAY (Menu 6-10) ================= -->
+        <div x-show="view === 'opening'" class="w-full space-y-5" x-transition>
+            <div class="glass p-6 shadow-sm space-y-4 text-center">
+                <h2 class="text-xl font-extrabold text-pink-600" x-text="activeGame().title"></h2>
+                <p class="text-xs text-gray-600 leading-relaxed" x-text="activeGame().description"></p>
+            </div>
+
+            <div class="glass p-5 shadow-sm space-y-2">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-pink-500">Cara Main:</h3>
+                <ul class="text-xs text-gray-700 space-y-1 list-decimal list-inside font-semibold">
+                    <template x-for="step in activeGame().caraMain">
+                        <li x-text="step"></li>
+                    </template>
+                </ul>
+            </div>
+
+            <div class="glass p-5 shadow-sm space-y-3">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-pink-500">Rules:</h3>
+                <ul class="text-xs text-pink-600 space-y-2 font-bold">
+                    <template x-for="rule in activeGame().rules">
+                        <li class="flex items-start gap-2"><span>🌸</span> <span x-text="rule"></span></li>
+                    </template>
+                </ul>
+                <label class="flex items-center gap-3 pt-2 text-xs font-bold text-gray-700 cursor-pointer select-none">
+                    <input type="checkbox" x-model="honestChecked" class="accent-pink-500 w-4 h-4 rounded">
+                    <span x-text="activeGame().checkboxText || 'i promise to play honestly'"></span>
+                </label>
+            </div>
+
+            <button :disabled="!honestChecked" @click="view = 'choosePlayer'" 
+                    :class="honestChecked ? 'btn-primary text-white' : 'bg-gray-300 text-gray-500 cursor-not-allowed'"
+                    class="px-12 py-4 rounded-full font-bold w-full uppercase tracking-wider text-sm transition-all shadow-md">
+                Start Game
+            </button>
+        </div>
+
+        <!-- ================= 4. SCREEN: RULES PAGE (Menu 1-5) ================= -->
         <div x-show="view === 'rules'" class="w-full space-y-6" x-transition>
             <h2 class="text-xl font-extrabold text-pink-600 text-center tracking-tight">Rules</h2>
             <div class="glass p-6 shadow-sm">
@@ -71,78 +112,135 @@
             <button @click="startQuestions()" class="btn-primary text-white px-12 py-4 rounded-full font-bold w-full uppercase tracking-wider text-sm">I'm Ready</button>
         </div>
 
-        <div x-show="view === 'quiz'" class="w-full space-y-6" x-transition>
+        <!-- ================= 5. SCREEN: CHOOSE PLAYER (Menu 6-10) ================= -->
+        <div x-show="view === 'choosePlayer'" class="w-full text-center space-y-6" x-transition>
+            <h2 class="text-2xl font-extrabold text-pink-600 tracking-tight">Who Are You?</h2>
+            <div class="grid grid-cols-2 gap-4 w-full">
+                <button @click="setPlayer('Lily 🌸')" class="glass p-6 text-xl font-bold text-pink-600 hover:scale-105 active:scale-95 transition-transform flex flex-col items-center gap-2">
+                    <span class="text-4xl">🌸</span> Lily
+                </button>
+                <button @click="setPlayer('Irul ☕')" class="glass p-6 text-xl font-bold text-gray-700 hover:scale-105 active:scale-95 transition-transform flex flex-col items-center gap-2">
+                    <span class="text-4xl">☕</span> Irul
+                </button>
+            </div>
+        </div>
+
+        <!-- ================= 6. SCREEN: QUESTION SLIDES ================= -->
+        <div x-show="view === 'quiz'" class="w-full space-y-4" x-transition>
+            <!-- Progress Bar -->
             <div class="w-full bg-pink-100 h-2.5 rounded-full overflow-hidden">
                 <div class="bg-pink-500 h-full transition-all duration-300" :style="`width: ${(currentQuestionIndex + 1) / activeGame().questions.length * 100}%`"></div>
             </div>
             
             <div class="flex justify-between items-center text-xs text-gray-400 font-bold px-1">
                 <span x-text="`Pertanyaan ${currentQuestionIndex + 1}/${activeGame().questions.length}`"></span>
-                <span class="text-pink-400" x-text="activeGame().title"></span>
+                <span class="text-pink-400" x-text="player ? `Player: ${player}` : activeGame().title"></span>
             </div>
 
-            <div class="glass p-8 text-center min-h-[180px] flex items-center justify-center shadow-md">
-                <p class="text-lg font-bold text-gray-700 leading-snug" x-text="activeGame().questions[currentQuestionIndex]"></p>
+            <!-- Card Pertanyaan -->
+            <div class="glass p-6 text-center min-h-[160px] flex flex-col items-center justify-center shadow-md">
+                <p class="text-base font-bold text-gray-700 leading-snug" x-text="activeGame().questions[currentQuestionIndex].q || activeGame().questions[currentQuestionIndex]"></p>
             </div>
 
+            <!-- Area Pilihan Tombol / Input Text -->
             <div class="space-y-3 w-full">
-                <template x-if="activeGameIndex === 0">
+                <!-- TYPE 1: Cheating or No Cheating -->
+                <template x-if="activeGame().type === 'cheating'">
                     <div class="grid grid-cols-2 gap-3">
                         <button @click="saveAnswer('Cheating 🚨')" class="btn-primary text-white py-4 rounded-2xl font-bold text-sm">Cheating 🚨</button>
                         <button @click="saveAnswer('No Cheating 😌')" class="btn-secondary py-4 rounded-2xl font-bold text-sm">No Cheating 😌</button>
                     </div>
                 </template>
 
-                <template x-if="activeGameIndex === 1">
+                <!-- TYPE 2: Green Flag or Red Flag -->
+                <template x-if="activeGame().type === 'flag'">
                     <div class="grid grid-cols-2 gap-3">
                         <button @click="saveAnswer('Green Flag 💚')" class="bg-green-500 text-white py-4 rounded-2xl font-bold text-sm shadow-md">Green Flag 💚</button>
                         <button @click="saveAnswer('Red Flag 🚨')" class="bg-red-500 text-white py-4 rounded-2xl font-bold text-sm shadow-md">Red Flag 🚨</button>
                     </div>
                 </template>
 
-                <template x-if="activeGameIndex === 2">
+                <!-- TYPE 3: Who's More Likely To -->
+                <template x-if="activeGame().type === 'likely'">
                     <div class="grid grid-cols-2 gap-3">
                         <button @click="saveAnswer('Lily 👩‍🦰')" class="btn-primary text-white py-4 rounded-2xl font-bold text-sm">Lily 👩‍🦰</button>
                         <button @click="saveAnswer('Irul 👨‍💻')" class="btn-secondary py-4 rounded-2xl font-bold text-sm">Irul 👨‍💻</button>
                     </div>
                 </template>
 
-                <template x-if="activeGameIndex === 3">
+                <!-- TYPE 4: This or That -->
+                <template x-if="activeGame().type === 'thisthat'">
                     <div class="grid grid-cols-2 gap-3">
                         <button @click="saveAnswer(getOptions(activeGame().questions[currentQuestionIndex])[0])" class="btn-primary text-white py-4 px-2 rounded-2xl font-bold text-xs truncate" x-text="getOptions(activeGame().questions[currentQuestionIndex])[0]"></button>
                         <button @click="saveAnswer(getOptions(activeGame().questions[currentQuestionIndex])[1])" class="btn-secondary py-4 px-2 rounded-2xl font-bold text-xs truncate" x-text="getOptions(activeGame().questions[currentQuestionIndex])[1]"></button>
                     </div>
                 </template>
 
-                <template x-if="activeGameIndex === 4">
+                <!-- TYPE 5: Agreement Lama -->
+                <template x-if="activeGame().type === 'agreement'">
                     <div class="grid grid-cols-2 gap-3">
                         <button @click="saveAnswer('Setuju 📑')" class="btn-primary text-white py-4 rounded-2xl font-bold text-sm">Setuju 📑</button>
                         <button @click="saveAnswer('Nego 😤')" class="btn-secondary py-4 rounded-2xl font-bold text-sm">Nego 😤</button>
                     </div>
                 </template>
+
+                <!-- TYPE 6: Multiple Choice 4 Opsi (Menu 8 - Relationship Emergency) -->
+                <template x-if="activeGame().type === 'mc'">
+                    <div class="grid grid-cols-1 gap-2">
+                        <template x-for="(opt, idx) in activeGame().questions[currentQuestionIndex].options" :key="idx">
+                            <button @click="submitMcAnswer(opt.score, opt.text)" 
+                                    class="w-full p-3.5 rounded-xl text-left font-bold text-xs glass border border-pink-200 hover:bg-pink-100/50 transition-colors flex items-center gap-3 text-gray-700">
+                                <span class="bg-pink-500 text-white w-5 h-5 rounded-md flex items-center justify-center text-[10px]" x-text="opt.key"></span>
+                                <span x-text="opt.text"></span>
+                            </button>
+                        </template>
+                    </div>
+                </template>
+
+                <!-- TYPE 7: Input Essay Ketik (Menu 6, 7, 9, 10) -->
+                <template x-if="activeGame().type === 'essay'">
+                    <div class="space-y-3">
+                        <textarea x-model="textInput" placeholder="Ketik jawaban atau memorimu di sini..." 
+                                  class="w-full p-4 rounded-2xl glass border border-pink-200 text-sm font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-400 h-24 resize-none"></textarea>
+                        <button @click="submitEssayAnswer()" :disabled="!textInput.trim()"
+                                :class="textInput.trim() ? 'btn-primary text-white' : 'bg-gray-300 text-gray-500 cursor-not-allowed'"
+                                class="w-full py-3.5 rounded-xl font-bold text-sm shadow-md transition-all">
+                            Next Question ➡️
+                        </button>
+                    </div>
+                </template>
             </div>
         </div>
 
+        <!-- ================= 7. SCREEN: RESULT / REVIEW PAGE ================= -->
         <div x-show="view === 'result'" class="w-full space-y-6" x-transition>
             <div class="text-center space-y-2">
                 <div class="text-5xl">😌</div>
-                <h2 class="text-2xl font-extrabold text-pink-600 tracking-tight">Your Answers Are In 😌</h2>
-                <p class="text-xs text-gray-500">nahh ini semua jawaban kamu, yuk review bareng satu-satu</p>
+                <h2 class="text-2xl font-extrabold text-pink-600 tracking-tight" x-text="activeGame().resultTitle || 'Your Answers Are In 😌'"></h2>
+                <p class="text-xs text-gray-500" x-text="activeGame().resultSubtitle || 'nahh ini semua jawaban kamu, yuk review bareng satu-satu'"></p>
             </div>
 
-            <div class="glass p-4 max-h-[320px] overflow-y-auto space-y-2 border border-pink-100 shadow-inner">
+            <!-- Badge Type Emergency Khusus Menu 8 -->
+            <template x-if="activeGameIndex === 7">
+                <div class="glass p-5 border-2 border-dashed border-pink-400 text-center space-y-1 bg-pink-100/30">
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-pink-500">Your Archetype Style</span>
+                    <h3 class="text-lg font-extrabold text-pink-600" x-text="emergencyStyle"></h3>
+                </div>
+            </template>
+
+            <!-- Render Box List Jawaban Sementara -->
+            <div class="glass p-4 max-h-[300px] overflow-y-auto space-y-2 border border-pink-100 shadow-inner">
                 <template x-for="(ans, idx) in currentAnswers" :key="idx">
                     <div class="bg-white/80 p-3 rounded-2xl border border-pink-50/50 flex flex-col gap-1 shadow-sm">
                         <p class="text-xs font-bold text-gray-700" x-text="`${idx + 1}. ${ans.q}`"></p>
-                        <div class="text-[11px] font-extrabold text-pink-500 self-end bg-pink-50 px-2 py-0.5 rounded-lg" x-text="`→ ${ans.a}`"></div>
+                        <div class="text-[11px] font-extrabold text-pink-500 self-end bg-pink-50 px-2 py-0.5 rounded-lg" x-text="activeGame().type === 'essay' ? ans.a : `→ ${ans.a}`"></div>
                     </div>
                 </template>
             </div>
 
+            <!-- Panel Aksi Akhir -->
             <div class="text-center pt-2 space-y-3">
-                <button @click="showCtaText = true" class="btn-primary text-white px-10 py-4 rounded-full font-bold w-full shadow-lg text-sm uppercase tracking-wider">
-                    review bareng yuk
-                </button>
+                <button @click="showCtaText = true" class="btn-primary text-white px-10 py-4 rounded-full font-bold w-full shadow-lg text-sm uppercase tracking-wider" x-text="activeGame().ctaButtonText || 'review bareng yuk'"></button>
                 
                 <div x-show="showCtaText" x-transition class="text-xs font-bold text-pink-500 bg-white/60 p-3 rounded-xl border border-pink-100">
                     sekarang waktunya bahas satu-satu. siap adu argumen? 😭🤍
@@ -163,24 +261,31 @@
                 view: 'menu',
                 activeGameIndex: 0,
                 currentQuestionIndex: 0,
-                currentAnswers: [], // Array temporary state
+                currentAnswers: [],
+                player: '',
+                honestChecked: false,
+                textInput: '',
                 showCtaText: false,
+                emergencyScores: { A: 0, B: 0, C: 0, D: 0, E: 0 },
+                emergencyStyle: '',
                 
                 games: [
+                    // MENU 1
                     {
                         title: "Cheating or No Cheating?",
                         tagline: "let’s see how aligned we are 😌",
                         rules: ["ada 15 pertanyaan", "pilih jawaban paling jujur", "ga boleh overthink 😠", "hasilnya bakal muncul di akhir", "nanti kita review bareng"],
+                        type: "cheating",
                         questions: [
                             "like postingan orang yang dulu pernah disuka tengah malem",
                             "masih streak tiap hari sama orang yang pernah deket",
-                            "jalan berdua terus billing “temen doang kok”",
+                            "jalan berdua terus bilang “temen doang kok”",
                             "hapus chat pas ditanya lagi chat sama siapa",
                             "bilang “aku kangen” ke orang lain",
                             "masih nyimpen foto mantan",
                             "curhat hubungan ke orang yang pernah suka",
                             "intens chat tiap malem sama orang lain",
-                            "nyaman sama orang lain tapi ga bilang",
+                            "nyaman sama orang lain tapi ga billing",
                             "bohong soal lagi dimana",
                             "sengaja bikin pasangan cemburu",
                             "punya backup person buat chat",
@@ -189,92 +294,163 @@
                             "nge-hide instastory dari pasangan pas lagi pergi"
                         ]
                     },
+                    // MENU 2
                     {
                         title: "Green Flag or Red Flag?",
                         tagline: "relationship radar test 😭",
                         rules: ["pilih instinct pertama kamu", "jangan terlalu mikir", "bayangin ini kejadian di hubungan kita", "hasil pilihanmu muncul di akhir", "nanti kita review, debat dikit gapapa 😠"],
+                        type: "flag",
                         questions: [
-                            "cepet bales chat",
-                            "bilang langsung kalau lagi bad mood",
-                            "ngambek tapi ga ngomong",
-                            "minta waktu sendiri tapi tetep ngabarin",
-                            "nanya “udah makan belum?”",
-                            "jujur meskipun awkward",
-                            "ngilang pas ada masalah",
-                            "bilang cemburu baik-baik",
-                            "keep contact sama orang yang ada history",
-                            "ngomong kalau ga nyaman",
-                            "bilang “aku butuh waktu bentar”",
-                            "minta maaf duluan",
-                            "ngaku salah",
-                            "cerita hal receh random",
-                            "bilang jujur lagi ga mood ngobrol"
+                            "cepet bales chat", "bilang langsung kalau lagi bad mood", "ngambek tapi ga ngomong", "minta waktu sendiri tapi tetep ngabarin", "nanya “udah makan belum?”",
+                            "jujur meskipun awkward", "ngilang pas ada masalah", "bilang cemburu baik-baik", "keep contact sama orang yang ada history", "ngomong kalau ga nyaman",
+                            "bilang “aku butuh waktu bentar”", "minta maaf duluan", "ngaku salah", "cerita hal receh random", "bilang jujur lagi ga mood ngobrol"
                         ]
                     },
+                    // MENU 3
                     {
                         title: "Who’s More Likely To?",
                         tagline: "ayo jujur jangan asal nuduh 😭",
                         rules: ["pilih siapa yang paling mungkin", "ga boleh asal lempar tuduhan 😠", "pilih sesuai feeling pertama", "hasilnya kita review bareng", "kalau beda pendapat ya diskusi 😌"],
+                        type: "likely",
                         questions: [
-                            "duluan ngambek",
-                            "duluan bilang kangen",
-                            "lebih clingy",
-                            "lebih overthink",
-                            "spam chat duluan",
-                            "ngajak jalan duluan",
-                            "susah bilang kalo lagi sedih",
-                            "kirim stiker random",
-                            "bucin duluan",
-                            "paling panik kalau salah satu tiba-tiba slow respon",
-                            "duluan minta maaf",
-                            "ngajak deep talk random",
-                            "excited pas mau ketemu",
-                            "ingat detail-detail kecil tentang hubungan",
-                            "nyariin pas lagi diem"
+                            "duluan ngambek", "duluan bilang kangen", "lebih clingy", "lebih overthink", "spam chat duluan",
+                            "ngajak jalan duluan", "susah bilang kalo lagi sedih", "kirim stiker random", "bucin duluan", "paling panik kalau salah satu tiba-tiba slow respon",
+                            "duluan minta maaf", "ngajak deep talk random", "excited pas mau ketemu", "ingat detail-detail kecil tentang hubungan", "nyariin pas lagi diem"
                         ]
                     },
+                    // MENU 4
                     {
                         title: "This or That",
                         tagline: "pick fast, no second thoughts 😠",
                         rules: ["pilih salah satu", "ga boleh mikir lama", "first choice = jawaban asli", "hasilnya bakal muncul di akhir", "terus kita cocokin preference kita 😌"],
+                        type: "thisthat",
                         questions: [
-                            "deep talk / ngobrol receh",
-                            "chat panjang / vn",
-                            "museum / kulineran",
-                            "jalan sore / night ride",
-                            "peluk / gandeng tangan",
-                            "pink / strawberry",
-                            "rebahan sambil call / jalan random",
-                            "surat / hadiah",
-                            "quality time berdua / rame-rame",
-                            "“aku kangen” / “pengen ketemu”",
-                            "call 2 jam / ketemu 1 jam",
-                            "surprise kecil / surat panjang",
-                            "ngobrol di motor / coffee shop",
-                            "ditemenin diem / dengerin cerita",
-                            "“selamat tidur” / “udah sampe rumah?”"
+                            "deep talk / ngobrol receh", "chat panjang / vn", "museum / kulineran", "jalan sore / night ride", "peluk / gandeng tangan",
+                            "pink / strawberry", "rebahan sambil call / jalan random", "surat / hadiah", "quality time berdua / rame-rame", "“aku kangen” / “pengen ketemu”",
+                            "call 2 jam / ketemu 1 jam", "surprise kecil / surat panjang", "ngobrol di motor / coffee shop", "ditemenin diem / dengerin cerita", "“selamat tidur” / “udah sampe rumah?”"
                         ]
                     },
+                    // MENU 5
                     {
                         title: "Our Relationship Agreement",
                         tagline: "mini contract before we continue 😌",
                         rules: ["pilih semua yang kamu setuju", "jawab jujur", "ini bukan jebakan 😭", "hasil pilihanmu bakal muncul di akhir", "nanti kita review bareng", "once agreed = no excuse “aku lupa” 😠"],
+                        type: "agreement",
                         questions: [
-                            "wajib ngabarin kalau sibuk",
-                            "ga boleh silent treatment",
-                            "ga boleh ngilang tanpa kabar",
-                            "bilang kalau ada yang bikin ga nyaman",
-                            "cerita kalau lagi kepikiran sesuatu",
-                            "ga boleh mendem masalah lama-lama",
-                            "jujur meskipun awkward",
-                            "saling support urusan hidup",
-                            "apresiasi effort kecil",
-                            "ga maksa pasangan nebak",
-                            "bilang kalau butuh ditemenin",
-                            "kasih reassurance secukupnya",
-                            "ngobrolin masalah baik-baik",
-                            "dilarang nge-post kode atau sindiran di sosmed pas lagi ada masalah",
-                            "tetap saling menghargai privasi masing-masing"
+                            "wajib ngabarin kalau sibuk", "ga boleh silent treatment", "ga boleh ngilang tanpa kabar", "bilang kalau ada yang bikin ga nyaman", "cerita kalau lagi kepikiran sesuatu",
+                            "ga boleh mendem masalah lama-lama", "jujur meskipun awkward", "saling support urusan hidup", "apresiasi effort kecil", "ga maksa pasangan nebak",
+                            "bilang kalau butuh ditemenin", "kasih reassurance secukupnya", "ngobrolin masalah baik-baik", "dilarang nge-post kode atau sindiran di sosmed pas lagi ada masalah", "tetap saling menghargai privasi masing-masing"
+                        ]
+                    },
+                    // MENU 6
+                    {
+                        title: "How Well Do You Know Us",
+                        tagline: "let’s test our little memories together 🤍",
+                        description: "di game ini kamu bakal jawab pertanyaan tentang perjalanan kita sejauh ini. Jawab berdasarkan ingatanmu sendiri, ga boleh buka chat, ga boleh buka galeri, ga boleh nyontek 😠 Di akhir semua jawabanmu bakal ditampilin terus kita cocokin bareng",
+                        caraMain: ["pilih siapa kamu", "jawab 20 pertanyaan", "submit jawaban", "hasil jawabanmu muncul", "compare sama pasangan", "review memory bareng"],
+                        rules: ["no cheating", "jawab spontan", "trust your memory", "ga boleh scroll chat", "kalau lupa gapapa 😭"],
+                        checkboxText: "i promise to play honestly",
+                        type: "essay",
+                        resultTitle: "Your Answers Are Ready 🤍",
+                        resultSubtitle: "sekarang tunjukkin jawabanmu ke pasanganmu dan cocokin satu-satu",
+                        ctaButtonText: "compare together",
+                        questions: [
+                            "kita pertama ketemu dimana?", "siapa yang lebih gugup duluan?", "pertama ketemu ngobrol berapa lama?", "siapa yang duluan ngajak ketemu lagi?", "first impression kamu ke pasanganmu apa?", 
+                            "first impression pasanganmu ke kamu apa?", "makanan pertama kita makan bareng apa?", "siapa yang duluan ngajak call?", "first sleepcall kapan?", "stiker favorit kita apa?", 
+                            "first inside joke kita apa?", "siapa yang duluan bilang nyaman?", "moment pertama kita ngerasa klik kapan?", "date paling memorable sejauh ini?", "first awkward moment kita apa?", 
+                            "lagu yang paling relate sama kita apa?", "deep talk pertama kita bahas apa?", "hal random pertama yang bikin kita nyambung?", "memory favoritmu sejauh ini?", "moment yang pengen kamu ulang lagi?"
+                        ]
+                    },
+                    // MENU 7
+                    {
+                        title: "Guess My Answer",
+                        tagline: "how well do u know what’s inside my head?",
+                        description: "di game ini kamu bakal nebak jawaban pasanganmu. Kalau kamu pilih Lily berarti kamu jawab berdasarkan tebakanmu tentang Irul. Kalau pilih Irul, jawab berdasarkan tebakanmu tentang Lily. Nanti hasilnya kalian cocokin bareng 😌",
+                        caraMain: ["pilih siapa kamu", "jawab 20 tebakan", "submit", "lihat hasilmu", "compare manual bareng"],
+                        rules: ["no bocoran", "no nanya clue", "no cheating", "pilih insting pertama"],
+                        checkboxText: "i’m ready to guess honestly",
+                        type: "essay",
+                        resultTitle: "Your Guess Is Ready 🤍",
+                        resultSubtitle: "sekarang compare jawabanmu dan lihat seberapa akurat tebakanmu 😌",
+                        ctaButtonText: "compare now",
+                        questions: [
+                            "kalau pasanganmu lagi bad mood, dia maunya diapain?", "comfort food dia apa?", "kalau capek dia maunya gimana?", "hal kecil apa yang paling bikin dia seneng?", "dia lebih suka call atau ketemu?", 
+                            "dia lebih suka deep talk atau ngobrol receh?", "surprise ideal menurut dia apa?", "hal yang paling bikin dia overthink apa?", "hal yang bikin dia nyaman dalam hubungan ini apa?", "next date impiannya apa?", 
+                            "hadiah favorit dia apa?", "kalau kesel biasanya dia gimana?", "hal yang bikin dia insecure apa?", "reassurance favoritnya bentuk apa?", "quality apa dari kamu yang paling dia suka?", 
+                            "hal paling penting menurut dia dalam hubungan apa?", "love language dia apa?", "apa yang paling dia takutin dalam hubungan?", "cara dia nunjukkin sayang biasanya gimana?", "menurutmu, kenapa dia stay?"
+                        ]
+                    },
+                    // MENU 8
+                    {
+                        title: "Relationship Emergency 🚨",
+                        tagline: "what would u do?",
+                        description: "hubungan ga selalu mulus, kadang ada situasi random yang bikin kita harus milih respon. Pilih respon yang paling mungkin kamu lakuin",
+                        caraMain: ["pilih siapa kamu", "jawab 20 situasi", "dapet relationship style", "compare hasil"],
+                        rules: ["jawab realistis", "pilih yang paling jujur", "jangan pilih jawaban biar keliatan baik 😭"],
+                        checkboxText: "i’ll answer honestly",
+                        type: "mc",
+                        resultTitle: "Your Relationship Style",
+                        resultSubtitle: "ini gaya respon emosimu dalam menghadapi situasi darurat hubungan",
+                        ctaButtonText: "compare together",
+                        questions: [
+                            { q: "pasanganmu slow respon seharian", options: [{key:'A', text:'tunggu dulu', score:'A'}, {key:'B', text:'chat baik-baik', score:'C'}, {key:'C', text:'mulai overthink', score:'B'}, {key:'D', text:'spam stiker', score:'D'}] },
+                            { q: "dia bilang “gapapa”", options: [{key:'A', text:'percaya', score:'E'}, {key:'B', text:'tanya pelan', score:'C'}, {key:'C', text:'kasih waktu', score:'A'}, {key:'D', text:'maksa cerita', score:'D'}] },
+                            { q: "dia ketiduran pas call", options: [{key:'A', text:'maklum', score:'E'}, {key:'B', text:'chat pas bangun', score:'A'}, {key:'C', text:'ngambek', score:'D'}, {key:'D', text:'kepikiran', score:'B'}] },
+                            { q: "dia minta me time", options: [{key:'A', text:'kasih space', score:'A'}, {key:'B', text:'tanya kenapa', score:'C'}, {key:'C', text:'tetep chat', score:'D'}, {key:'D', text:'overthink', score:'B'}] },
+                            { q: "dia lagi PMS / bad mood", options: [{key:'A', text:'kasih ruang', score:'A'}, {key:'B', text:'temenin', score:'E'}, {key:'C', text:'kirim meme', score:'C'}, {key:'D', text:'bingung', score:'B'}] },
+                            { q: "dia cancel date mendadak", options: [{key:'A', text:'ngerti', score:'E'}, {key:'B', text:'tanya alasan', score:'C'}, {key:'C', text:'kecewa diem', score:'B'}, {key:'D', text:'overthink', score:'D'}] },
+                            { q: "dia tiba-tiba diem", options: [{key:'A', text:'tunggu', score:'A'}, {key:'B', text:'tanya baik-baik', score:'C'}, {key:'C', text:'awkward', score:'E'}, {key:'D', text:'mikir aku salah', score:'B'}] },
+                            { q: "dia insecure", options: [{key:'A', text:'reassure', score:'E'}, {key:'B', text:'dengerin', score:'A'}, {key:'C', text:'bingung', score:'B'}, {key:'D', text:'panik', score:'D'}] },
+                            { q: "dia nangis pas call", options: [{key:'A', text:'tenangin', score:'E'}, {key:'B', text:'dengerin', score:'A'}, {key:'C', text:'bingung', score:'B'}, {key:'D', text:'ikut sedih', score:'D'}] },
+                            { q: "dia salah paham", options: [{key:'A', text:'jelasin', score:'C'}, {key:'B', text:'minta maaf', score:'E'}, {key:'C', text:'diem', score:'A'}, {key:'D', text:'kesel', score:'D'}] },
+                            { q: "dia stress berat", options: [{key:'A', text:'support', score:'E'}, {key:'B', text:'temenin', score:'D'}, {key:'C', text:'kasih space', score:'A'}, {key:'D', text:'bingung', score:'B'}] },
+                            { q: "dia minta reassurance", options: [{key:'A', text:'kasih langsung', score:'E'}, {key:'B', text:'tanya kebutuhan', score:'C'}, {key:'C', text:'bingung', score:'B'}, {key:'D', text:'ngerasa bersalah', score:'D'}] },
+                            { q: "dia bilang “aku bingung”", options: [{key:'A', text:'ajak ngobrol', score:'C'}, {key:'B', text:'kasih waktu', score:'A'}, {key:'C', text:'diem', score:'E'}, {key:'D', text:'overthink', score:'B'}] },
+                            { q: "dia marah tapi diem", options: [{key:'A', text:'sabar nunggu', score:'A'}, {key:'B', text:'chat pelan', score:'C'}, {key:'C', text:'kesel balik', score:'D'}, {key:'D', text:'panik', score:'B'}] },
+                            { q: "dia bilang capek", options: [{key:'A', text:'kasih ruang', score:'A'}, {key:'B', text:'hibur', score:'E'}, {key:'C', text:'kirim hal lucu', score:'C'}, {key:'D', text:'bingung', score:'B'}] },
+                            { q: "dia ga update seharian", options: [{key:'A', text:'santai', score:'A'}, {key:'B', text:'cek keadaan', score:'C'}, {key:'C', text:'kepikiran', score:'B'}, {key:'D', text:'spam chat', score:'D'}] },
+                            { q: "dia butuh waktu sendiri", options: [{key:'A', text:'hormati', score:'A'}, {key:'B', text:'tanya detail', score:'C'}, {key:'C', text:'sedih tapi ngerti', score:'E'}, {key:'D', text:'overthink', score:'B'}] },
+                            { q: "komunikasi lagi ga enak", options: [{key:'A', text:'ajak bahas', score:'C'}, {key:'B', text:'tunggu waktu pas', score:'A'}, {key:'C', text:'diem dulu', score:'E'}, {key:'D', text:'stress sendiri', score:'B'}] },
+                            { q: "dia ngerasa ga cukup baik", options: [{key:'A', text:'reassure', score:'E'}, {key:'B', text:'dengerin', score:'A'}, {key:'C', text:'peluk', score:'D'}, {key:'D', text:'bingung', score:'B'}] },
+                            { q: "dia bilang “aku butuh waktu buat mikir”", options: [{key:'A', text:'kasih waktu', score:'A'}, {key:'B', text:'ajak ngobrol', score:'C'}, {key:'C', text:'overthink total', score:'B'}, {key:'D', text:'panik', score:'D'}] }
+                        ]
+                    },
+                    // MENU 9
+                    {
+                        title: "Build Our Couple Manual",
+                        tagline: "our little relationship rulebook 🤍",
+                        description: "setiap hubungan butuh little agreements. Di game ini kamu bakal nentuin cara ideal hubungan menurutmu. Jawab jujur, jangan pilih buat nyenengin pasangan, pilih yang realistis",
+                        caraMain: ["pilih siapa kamu", "jawab preference", "hasil jadi relationship manual", "compare"],
+                        rules: ["jawab jujur", "jangan pilih buat nyenengin pasangan", "pilih yang realistis"],
+                        checkboxText: "i promise to write realistically",
+                        type: "essay",
+                        resultTitle: "Your Couple Manual Is Ready 🤍",
+                        resultSubtitle: "mari satukan visi misi rulebook kita berdua",
+                        ctaButtonText: "read together",
+                        questions: [
+                            "kalau bad mood maunya diapain?", "update keseharian sepenting apa?", "ideal call seberapa sering?", "kalau kesel langsung ngomong atau diem dulu?", "goodnight/goodmorning penting ga?", 
+                            "ideal ketemu seberapa sering?", "kalau ketiduran harus bilang ga?", "kalau butuh me time cara bilangnya gimana?", "bentuk reassurance favorit?", "effort kecil paling meaningful apa?", 
+                            "kalau overthink maunya diapain?", "ideal bahas masalah kapan?", "kalau marah butuh space berapa lama?", "affection favorit?", "perlu bilang kalau lagi pergi?", 
+                            "boleh ga ngilang tanpa kabar?", "cara nyaman dikasih kritik?", "hal yang absolutely forbidden?", "rule paling penting buat kita?", "relationship ideal menurutmu kayak gimana?"
+                        ]
+                    },
+                    // MENU 10
+                    {
+                        title: "Memory Unlock ✨",
+                        tagline: "let’s open our little moments",
+                        description: "setiap little moment matters. Jawab pertanyaan dan buka memory kita satu-satu",
+                        caraMain: ["pilih siapa kamu", "jawab 20 memory prompt", "unlock memory", "compare"],
+                        rules: ["jawab pake ingatan", "no cheating", "enjoy the memories 😌"],
+                        checkboxText: "i'm ready to unlock memories",
+                        type: "essay",
+                        resultTitle: "All Memories Unlocked 🤍",
+                        resultSubtitle: "now review all our little moments together",
+                        ctaButtonText: "see our story",
+                        questions: [
+                            "moment pertama kita ketawa bareng", "siapa duluan ngajak ketemu lagi", "first song yang kita share", "first compliment yang diinget", "first awkward silence", 
+                            "first deep talk", "first teasing moment", "first wholesome moment", "moment paling deg-degan", "first long conversation", 
+                            "first comfort moment", "moment “wah dia beda”", "first surprise moment", "first random confession", "first time bilang nyaman", 
+                            "memory paling bikin senyum", "memory yang pengen diulang", "first soft argument", "happiest date so far", "our best memory right now"
                         ]
                     }
                 ],
@@ -287,34 +463,92 @@
                 },
                 selectGame(idx) {
                     this.activeGameIndex = idx;
+                    this.honestChecked = false;
                     this.showCtaText = false;
+                    this.player = '';
+                    this.emergencyScores = { A: 0, B: 0, C: 0, D: 0, E: 0 };
                     this.view = 'cover';
+                },
+                handleCoverContinue() {
+                    if (this.activeGameIndex >= 5) {
+                        this.view = 'opening';
+                    } else {
+                        this.view = 'rules';
+                    }
+                },
+                setPlayer(pName) {
+                    this.player = pName;
+                    this.startQuestions();
                 },
                 startQuestions() {
                     this.currentQuestionIndex = 0;
                     this.currentAnswers = [];
+                    this.textInput = '';
                     this.showCtaText = false;
                     this.view = 'quiz';
                 },
                 saveAnswer(selectedOption) {
                     let currentQuestionText = this.activeGame().questions[this.currentQuestionIndex];
-                    // Menyimpan data ke array sementara
                     this.currentAnswers.push({
                         q: currentQuestionText,
                         a: selectedOption
                     });
-
-                    // Abis pilih auto next
+                    this.nextQuestionLogic();
+                },
+                submitEssayAnswer() {
+                    let currentQuestionText = this.activeGame().questions[this.currentQuestionIndex];
+                    this.currentAnswers.push({
+                        q: currentQuestionText,
+                        a: this.textInput.trim()
+                    });
+                    this.textInput = '';
+                    this.nextQuestionLogic();
+                },
+                submitMcAnswer(scoreCode, textLabel) {
+                    let currentQuestionText = this.activeGame().questions[this.currentQuestionIndex].q;
+                    this.currentAnswers.push({
+                        q: currentQuestionText,
+                        a: textLabel
+                    });
+                    this.emergencyScores[scoreCode]++;
+                    this.nextQuestionLogic();
+                },
+                nextQuestionLogic() {
                     if (this.currentQuestionIndex < this.activeGame().questions.length - 1) {
                         this.currentQuestionIndex++;
                     } else {
+                        if (this.activeGame().type === 'mc') {
+                            this.calculateEmergencyStyle();
+                        }
                         this.view = 'result';
                     }
                 },
+                calculateEmergencyStyle() {
+                    let maxScore = 0;
+                    let bestCode = 'A';
+                    for (let key in this.emergencyScores) {
+                        if (this.emergencyScores[key] > maxScore) {
+                            maxScore = this.emergencyScores[key];
+                            bestCode = key;
+                        }
+                    }
+                    const styles = {
+                        A: "🌷 The Calm Reassurer",
+                        B: "☁️ The Soft Overthinker",
+                        C: "⚡ The Direct Communicator",
+                        D: "🤍 The Patient Listener",
+                        E: "🫶 The Gentle Supporter"
+                    };
+                    this.emergencyStyle = styles[bestCode] || styles['A'];
+                },
                 resetGame() {
-                    // Reset array & balik ke awal pertanyaan game aktif
                     this.currentAnswers = [];
-                    this.startQuestions();
+                    this.emergencyScores = { A: 0, B: 0, C: 0, D: 0, E: 0 };
+                    if (this.activeGameIndex >= 5) {
+                        this.view = 'choosePlayer';
+                    } else {
+                        this.startQuestions();
+                    }
                 }
             }
         }
